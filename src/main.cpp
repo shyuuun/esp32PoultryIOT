@@ -18,7 +18,7 @@ void alertSound();
 #define BUZZPIN 0
 #define PH_PIN 14
 #define WATER_SEN 32
-#define WATER_BUZZ 23
+#define BUZZER_PIN 23
 #define REL_ACTUATOR 26
 #define REL_WATER_MOTOR 14
 #define REL_EXHAUST 27
@@ -42,7 +42,7 @@ void setup()
   pinMode(REL_WATER_MOTOR, OUTPUT);
   pinMode(REL_EXHAUST, OUTPUT);
   pinMode(REL_LIGHT, OUTPUT);
-  pinMode(WATER_BUZZ, OUTPUT);
+  pinMode(BUZZER_PIN, OUTPUT);
   pinMode(WATER_SEN, INPUT_PULLUP);
   // Init wifi
   Blynk.begin(BLYNK_AUTH_TOKEN, ssid, pass);
@@ -164,26 +164,37 @@ void readWaterLevel(){
 }
 
 void alertSound() {
-    tone(WATER_BUZZ, 500); // play a 500Hz tone
+    tone(BUZZER_PIN, 500); // play a 500Hz tone
     delay(2000); // wait for 1 second
-    noTone(WATER_BUZZ); // stop the tone
+    noTone(BUZZER_PIN); // stop the tone
     delay(2000);
-    tone(WATER_BUZZ, 500); // play a 500Hz tone
+    tone(BUZZER_PIN, 500); // play a 500Hz tone
     delay(1000); // wait for another second
-    noTone(WATER_BUZZ); // stop the tone
+    noTone(BUZZER_PIN); // stop the tone
 }
 
 BLYNK_WRITE(VIR_ACTUATOR)
 {
+  int state = param.asInt();
+
+  if(state == HIGH) {
+    digitalWrite(REL_ACTUATOR, HIGH);
+    Serial.println("BLYNK: REL_ACTUATOR turned on");
+    delay(3000);
+    digitalWrite(REL_ACTUATOR, LOW);
+    Serial.println("BLYNK: REL_ACTUATOR turned off");
+    Blynk.virtualWrite(VIR_ACTUATOR, LOW);
+  }
+  /*
   if (param.asInt() == 1)
   {
     Serial.println("BLYNK: REL_ACTUATOR turned on");
     digitalWrite(REL_ACTUATOR, HIGH);
-    delay(5000);
+  } else {
     Serial.println("BLYNK: REL_ACTUATOR turned off");
-    digitalWrite(REL_ACTUATOR, OFF);
+    digitalWrite(REL_ACTUATOR, LOW);
   }
-
+  */
 }
 
 BLYNK_WRITE(VIR_EXHAUST){

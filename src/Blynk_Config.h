@@ -16,6 +16,7 @@ Wifi Credentials
 Papalitan nyo ito kung hindi available yung wifi na nakalagay dito 
 
 */
+
 const char *ssid = "GlobeAtHome_B01FB";
 const char *pass = "48550858";
 

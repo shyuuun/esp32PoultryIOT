@@ -6,22 +6,22 @@
 #include <WiFiClient.h>
 #include <BlynkSimpleEsp32.h>
 
-#include "Blynk_Commands.h"
+#include "Blynk_Config.h"
 
 void readTempAndHumid();
 void readWaterLevel();
 void alertSound();
 void phsen();
+void displayValues();
 
 #define DHTPIN 19
 #define DHTTYPE DHT22
 #define LDRPIN 4
-#define BUZZPIN 0
 #define WATER_SEN 32
 #define BUZZER_PIN 23
-#define REL_ACTUATOR 18
-#define REL_WATER_MOTOR 5
-#define REL_EXHAUST 17
+#define REL_ACTUATOR 16
+#define REL_WATER_MOTOR 17
+#define REL_EXHAUST 18
 #define REL_LIGHT 25
 #define PH_SENSOR 35
 
@@ -29,7 +29,7 @@ DHT dht(DHTPIN, DHTTYPE);
 LiquidCrystal_I2C lcd(0x27, 16, 2);
 BlynkTimer timer;
 
-float temp, humid;
+int temp, humid;
 int waterLevel;
 
 float calibration_value = 21.34 - 0.2; // 20.24 - 0.7;
@@ -41,31 +41,44 @@ int ph_act;
 
 void setup()
 {
-  Serial.begin(9600);
+  Serial.begin(115200);
+  delay(50);
+  lcd.init();
+  lcd.backlight();
+  dht.begin();
+  Serial.println("...connecting");
+
+  // Init wifi
+  lcd.clear();
+  lcd.setCursor(0, 0);
+  lcd.print("Connecting");
+
+  Blynk.begin(BLYNK_AUTH_TOKEN, ssid, pass);
+
+  delay(2500);
+
+  lcd.clear();
+  lcd.setCursor(0, 0);
+  lcd.print("Success");
+
+  Serial.println("Success");
+
   pinMode(LDRPIN, INPUT);
-  pinMode(BUZZPIN, OUTPUT);
   pinMode(REL_ACTUATOR, OUTPUT);
   pinMode(REL_WATER_MOTOR, OUTPUT);
   pinMode(REL_EXHAUST, OUTPUT);
   pinMode(REL_LIGHT, OUTPUT);
   pinMode(BUZZER_PIN, OUTPUT);
   pinMode(WATER_SEN, INPUT_PULLUP);
-  // Init wifi
-  Blynk.begin(BLYNK_AUTH_TOKEN, ssid, pass);
 
-  lcd.init();
-  lcd.backlight();
-  dht.begin();
 
   Serial.println("Welcome to IOT Poultry");
-
   lcd.clear();
   lcd.setCursor(4, 0);
   lcd.print("IOT");
   lcd.setCursor(6, 1);
   lcd.print("Poultry");
 
-  delay(2500);
 
   // LOW yung off and HIGH naman yung on
   digitalWrite(REL_EXHAUST, LOW);
@@ -73,9 +86,11 @@ void setup()
   digitalWrite(REL_WATER_MOTOR, LOW);
   digitalWrite(REL_LIGHT, LOW);
 
-  timer.setInterval(2000L, readTempAndHumid);
+  timer.setInterval(3000L, readTempAndHumid);
   timer.setInterval(2000L, readWaterLevel);
-  timer.setInterval(2000L, phsen);
+  timer.setInterval(3000L, phsen);
+  //timer.setInterval(2000L, displayValues);
+
   }
 
 void loop()
@@ -83,73 +98,53 @@ void loop()
   Blynk.run();
   timer.run();
 
+}
 
-  /*
-  if(temp >= 35){
-    digitalWrite(REL_FAN, LOW);
-  }else {
-    digitalWrite(REL_FAN, HIGH);
-  }
+// Display all sensor values to the LCD screen
+void displayValues(){
 
-  int ldrValue = digitalRead(LDRPIN);
+  // For Temperature
 
-  if(ldrValue == 1){
-    // Lalagay ko dito yung led light
-    Serial.print("");
+
+
+
+
+  // For water sensor
+  lcd.setCursor(0, 1);
+  lcd.print("Water: ");
+
+  if(waterLevel == 1){
+    lcd.print("Present");
   } else {
-    // pagiisipan pa.
+    lcd.print("NotPrsnt");
   }
 
-  int phVoltage = analogRead(33);
-  Serial.print("PH LEVEL VOLTAGE: ");
-  Serial.println(phVoltage);
 
-
-  // Kapag 0 output walang laman, 1 may laman
-  Serial.print("Water Level: ");
-  Serial.println(digitalRead(WATER_SEN));
-
-  waterLevel = digitalRead(WATER_SEN);
-
-  if (waterLevel == 0){
-    // buzzer
-
-
-
-    for(int i = 0; i < 32; i++){
-    delay(500);
-    lcd.setCursor(0, i);
-    lcd.print("Warning: Low water level detected.");
-    }
-  } else {
-    Serial.println("Water pump is moving");
-  }
-*/
 }
 
 void readTempAndHumid()
 {
-
   temp = dht.readTemperature();
   humid = dht.readHumidity();
-
-  lcd.clear();
-  lcd.setCursor(0, 0);
-  lcd.print("Temp: ");
-  lcd.print(temp);
-  lcd.setCursor(0, 1);
-  lcd.print("Humid: ");
-  lcd.print(humid);
-
-  Blynk.virtualWrite(VIR_TEMPERATURE, temp);
-  Blynk.virtualWrite(VIR_HUMIDITY, humid);
 
   Serial.print("Temperature: ");
   Serial.println(temp);
   Serial.print("Humidity: ");
   Serial.println(humid);
 
-  delay(500);
+  lcd.clear();
+  lcd.setCursor(0, 0);
+  lcd.print("Temp: ");
+  lcd.print(temp);
+  lcd.print(" C°");
+  lcd.setCursor(0, 1);
+  lcd.print("Humid: ");
+  lcd.print(humid);
+  lcd.print("%");
+
+  Blynk.virtualWrite(VIR_TEMPERATURE, temp);
+  Blynk.virtualWrite(VIR_HUMIDITY, humid);
+
 }
 
 void readWaterLevel()
@@ -158,12 +153,12 @@ void readWaterLevel()
   if (waterLevel == 1)
   {
     Serial.println("Tank currently has water.");
-    Blynk.virtualWrite(VIR_WATERSEN, "Present");
+    Blynk.virtualWrite(VIR_WATERSEN, waterLevel);
   }
   else
   {
     Serial.println("Tank water level is low. Please fill up the tank.");
-    Blynk.virtualWrite(VIR_WATERSEN, "Not Present");
+    Blynk.virtualWrite(VIR_WATERSEN, waterLevel);
 
     alertSound();
 
@@ -212,23 +207,18 @@ void phsen()
   Serial.print("pH Val: ");
   Serial.println(ph_act);
 
+  // For pH Sensor
+  lcd.clear();
+  lcd.setCursor(0, 0);
+  lcd.print("pHLvl: ");
+  lcd.print(ph_act);
+
   Blynk.virtualWrite(V1, ph_act);
 }
 
 BLYNK_WRITE(VIR_ACTUATOR)
 {
-  int state = param.asInt();
-
-  if (state == HIGH)
-  {
-    digitalWrite(REL_ACTUATOR, HIGH);
-    Serial.println("BLYNK: REL_ACTUATOR turned on");
-    delay(3000);
-    digitalWrite(REL_ACTUATOR, LOW);
-    Serial.println("BLYNK: REL_ACTUATOR turned off");
-    Blynk.virtualWrite(VIR_ACTUATOR, LOW);
-  }
-  /*
+  
   if (param.asInt() == 1)
   {
     Serial.println("BLYNK: REL_ACTUATOR turned on");
@@ -237,7 +227,7 @@ BLYNK_WRITE(VIR_ACTUATOR)
     Serial.println("BLYNK: REL_ACTUATOR turned off");
     digitalWrite(REL_ACTUATOR, LOW);
   }
-  */
+  
 }
 
 BLYNK_WRITE(VIR_EXHAUST)

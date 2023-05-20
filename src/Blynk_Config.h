@@ -36,6 +36,7 @@ const char *pass1 = "Zenaida102763";
 #define VIR_WATERSEN2   V4
 #define VIR_LIGHT       V3
 #define VIR_SERVO       V5
+#define VIR_INCANDESENT V
 
 
 

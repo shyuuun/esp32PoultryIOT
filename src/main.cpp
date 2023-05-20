@@ -26,6 +26,7 @@ void displaySen();
 #define REL_WATER_MOTOR 17
 #define REL_EXHAUST 18
 #define REL_LIGHT 25
+#define REL_INCANDESENT 27
 #define PH_SENSOR 35
 #define SERVO_PIN 13
 
@@ -34,7 +35,7 @@ LiquidCrystal_I2C lcd(0x27, 16, 2);
 Servo servo; 
 BlynkTimer timer;
 
-int relayPins[] = {REL_ACTUATOR, REL_WATER_MOTOR, REL_EXHAUST, REL_LIGHT};
+int relayPins[] = {REL_ACTUATOR, REL_WATER_MOTOR, REL_EXHAUST, REL_LIGHT, REL_INCANDESENT};
 
 unsigned int temp, humid;
 int waterLevel1, waterLevel2 ;
@@ -245,6 +246,13 @@ void setServos(int degrees) {
     }
 }
 
+void openDoor(){
+      servo.attach(SERVO_PIN);
+    servo.write(180);
+    delay(1500);
+    servo.detach();
+}
+
 
 
 void alertSound(){
@@ -257,45 +265,20 @@ void alertSound(){
   noTone(BUZZER_PIN);    // stop the tone
 }
 
-
-
-BLYNK_WRITE(VIR_EXHAUST)
-{
-  if (param.asInt() == 1)
-  {
-    Serial.println("BLYNK: REL_EXHAUST turned on");
-    digitalWrite(REL_EXHAUST, HIGH);
-
-  }
-  else
-  {
-    Serial.println("BLYNK: REL_EXHAUST turned off");
-    digitalWrite(REL_EXHAUST, LOW);
-  }
-}
-
 BLYNK_WRITE(VIR_SERVO){
   if(param.asInt() == 1){
     Serial.println("BLYNK: SERVO_MOTOR turned on");
-      /*
-      for(int posDegrees = 0; posDegrees <= 180; posDegrees++) {
-        setServos(posDegrees);
-        Serial.println(posDegrees);
-        delay(20);
-    }
-    */
-    servo.write(180);
-  } else {
+    servo.attach(SERVO_PIN);
+    servo.write(130);
+    delay(3000);
+    servo.write(100);
+    Serial.println("Holding at 5 secs");
+    delay(5000);
+    servo.detach();
+    Blynk.virtualWrite(VIR_SERVO, LOW);
     Serial.println("BLYNK: SERVO_MOTOR turned off");
-    servo.write(0);
-      /*
-      for(int posDegrees = 180; posDegrees >= 0; posDegrees--) {
-        setServos(posDegrees);
-        Serial.println(posDegrees);
-        delay(20);
-    }
-      */
-  }
+
+  } 
 }
 
 /*
@@ -329,9 +312,7 @@ BLYNK_WRITE(VIR_ACTUATOR) {
 }
 */
 
-BLYNK_CONNECTED{
-  
-}
+
 
 BLYNK_WRITE(VIR_ACTUATOR) {
   if(param.asInt() == 1){ 

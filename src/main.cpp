@@ -175,10 +175,22 @@ void readTempAndHumid()
   lcd.print(humid);
   lcd.print("%");
 
-
+  if(temp >= 35) {
+    lcd.clear();
+    lcd.setCursor(0,0);
+    lcd.print("Temp >= 35");
+    lcd.setCursor(1,0);
+    lcd.print("Fan will turn on");
+    Serial.println("Fan will turn on");
+    digitalWrite(REL_EXHAUST, HIGH);
+  } else {
+    digitalWrite(REL_EXHAUST, LOW);
+  }
 
   Blynk.virtualWrite(VIR_TEMPERATURE, temp);
   Blynk.virtualWrite(VIR_HUMIDITY, humid);
+
+  
 
 
 }
@@ -311,6 +323,17 @@ BLYNK_WRITE(VIR_ACTUATOR) {
   }
 }
 */
+BLYNK_WRITE(VIR_INCANDESENT){
+  if(param.asInt() == 1)
+  {
+    digitalWrite(REL_INCANDESENT, HIGH);
+    Serial.println("BLYNK: REL_INCANDESENT is turned on");
+  } else {
+    digitalWrite(REL_INCANDESENT, LOW);
+    Serial.println("BLYNK: REL_INCANDESENT is turned off");
+  }
+  
+}
 
 
 

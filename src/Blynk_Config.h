@@ -29,14 +29,13 @@ const char *pass1 = "Zenaida102763";
 #define VIR_HUMIDITY    V0
 #define VIR_TEMPERATURE V6
 #define VIR_PH          V1
-#define VIR_EXHAUST     V11
 #define VIR_WATER_MOTOR V12
 #define VIR_ACTUATOR    V13
 #define VIR_WATERSEN1    V2
 #define VIR_WATERSEN2   V4
 #define VIR_LIGHT       V3
 #define VIR_SERVO       V5
-#define VIR_INCANDESENT V
+#define VIR_INCANDESENT V7
 
 
 

@@ -342,9 +342,8 @@ BLYNK_WRITE(VIR_ACTUATOR) {
     digitalWrite(REL_ACTUATOR, HIGH);
     // This will create a timer within 1.5 seconds. 
     // If 1.5 seconds elapse, the timer will be deleted to avoid causing an error exception
-    buttonTimer = timer.setInterval(1500L, turnOff);
-    Serial.print("Button Timer: ");
-    Serial.println(buttonTimer);
+    delay(1500);
+    digitalWrite(REL_ACTUATOR, LOW);
     Blynk.virtualWrite(VIR_ACTUATOR, LOW);
   } else {
     digitalWrite(REL_ACTUATOR, LOW);

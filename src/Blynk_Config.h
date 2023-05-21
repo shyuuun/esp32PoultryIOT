@@ -23,7 +23,6 @@ const char *pass = "48550858";
 const char *ssid1 = "Maria";
 const char *pass1 = "Zenaida102763";
 
-
 // Virutal Pins
 
 #define VIR_HUMIDITY    V0

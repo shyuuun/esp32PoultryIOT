@@ -358,7 +358,8 @@ void turnOff(){
 
 }
 
-
+unsigned long startTime = 0; // variable to hold the start time
+unsigned long duration = 5000; // variable to hold the duration in milliseconds (5 seconds)
 BLYNK_WRITE(VIR_WATER_MOTOR)
 {
   if (param.asInt() == 1)
@@ -368,16 +369,26 @@ BLYNK_WRITE(VIR_WATER_MOTOR)
       Serial.println("BLYNK: Tank water level is low. Please fill up the tank.");
       // maglalagay ng buzzer dito and lcd screen msg
       alertSound();
+
     }
     else
     {
       Serial.println("BLYNK: REL_WATER_MOTOR turned on");
       digitalWrite(REL_WATER_MOTOR, HIGH);
+      startTime = millis();
+
     }
   }
   else
   {
     Serial.println("BLYNK: REL_WATER_MOTOR turned off");
+    digitalWrite(REL_WATER_MOTOR, LOW);
+  }
+
+    // check if the duration has elapsed
+  if (millis() - startTime >= duration)
+  {
+    Serial.println("Timer expired, turning off REL_WATER_MOTOR");
     digitalWrite(REL_WATER_MOTOR, LOW);
   }
 }
